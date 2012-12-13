@@ -282,6 +282,14 @@
                 <attribute name="Implementation-Version" value="${version}"/>
                 <attribute name="Built-By" value="${user.name}"/>
                 <attribute name="Built-Date" value="${build.timestamp}"/>
+                <attribute name="Bundle-ManifestVersion" value="2"/>
+                <attribute name="Bundle-Name" value="@{modulename}"/>
+                <attribute name="Bundle-Description" value="@{modulename}"/>
+                <attribute name="Bundle-SymbolicName" value="org.hamcrest.core"/>
+                <attribute name="Bundle-Version" value="${version}"/>
+                <attribute name="Bundle-Vendor" value="hamcrest.org"/>
+                <attribute name="Export-Package" value="org.hamcrest;version=&quot;${version}&quot;"/>
+                <attribute name="Bundle-ActivationPolicy" value="lazy"/>
             </manifest>
             <mkdir dir="build/temp/@{modulename}-${version}.jar.contents"/>
             <javac srcdir="@{srcdir}" destdir="build/temp/@{modulename}-${version}.jar.contents" debug="${debug}" target="1.5" includeantruntime="false">
