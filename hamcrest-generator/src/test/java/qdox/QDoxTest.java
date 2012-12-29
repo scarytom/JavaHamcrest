@@ -1,12 +1,13 @@
 package qdox;
 
-import com.thoughtworks.qdox.JavaDocBuilder;
+import com.thoughtworks.qdox.JavaProjectBuilder;
 import com.thoughtworks.qdox.model.JavaClass;
 import com.thoughtworks.qdox.model.JavaMethod;
+import com.thoughtworks.qdox.model.JavaParameterizedType;
 
 public class QDoxTest extends junit.framework.TestCase {
 
-    final JavaDocBuilder builder = new JavaDocBuilder();
+    final JavaProjectBuilder builder = new JavaProjectBuilder();
     
     public void
     testReadsGenericsInGenericType() {
@@ -18,10 +19,10 @@ public class QDoxTest extends junit.framework.TestCase {
         
         builder.addSource(new java.io.StringReader(sourceCode));
         JavaClass qDoxClass = builder.getClassByName("foo.DummyOne");
-        JavaMethod qDoxMethod = qDoxClass.getMethods()[0];
+        JavaMethod qDoxMethod = qDoxClass.getMethods().get(0);
         
-        String result = qDoxMethod.getGenericReturnType().getActualTypeArguments()[0].toGenericString();
-        assertEquals("java.util.Map<? extends java.util.Set<java.lang.Long>, java.lang.String>", result);
+        String result = ((JavaParameterizedType)qDoxMethod.getReturnType()).getActualTypeArguments().get(0).getGenericFullyQualifiedName();
+        assertEquals("java.util.Map<? extends java.util.Set<java.lang.Long>,java.lang.String>", result);
     }
     
     public void
@@ -34,9 +35,9 @@ public class QDoxTest extends junit.framework.TestCase {
         
         builder.addSource(new java.io.StringReader(sourceCode));
         JavaClass qDoxClass = builder.getClassByName("foo.DummyOne");
-        JavaMethod qDoxMethod = qDoxClass.getMethods()[0];
+        JavaMethod qDoxMethod = qDoxClass.getMethods().get(0);
         
-        String result = qDoxMethod.getParameterTypes(true)[0].getGenericValue();
+        String result = qDoxMethod.getParameterTypes(true).get(0).getGenericFullyQualifiedName();
         assertEquals("java.util.Collection<? extends java.lang.Comparable<java.lang.String>>", result);
     }
     
@@ -50,9 +51,9 @@ public class QDoxTest extends junit.framework.TestCase {
         
         builder.addSource(new java.io.StringReader(sourceCode));
         JavaClass qDoxClass = builder.getClassByName("foo.DummyOne");
-        JavaMethod qDoxMethod = qDoxClass.getMethods()[0];
+        JavaMethod qDoxMethod = qDoxClass.getMethods().get(0);
         
-        String result = qDoxMethod.getTypeParameters()[0].toGenericString();
+        String result = qDoxMethod.getTypeParameters().get(0).getGenericFullyQualifiedName();
         assertEquals("<T extends java.lang.Number & java.lang.Iterable<java.lang.Integer>>", result);
     }
 }

@@ -1,12 +1,14 @@
 package org.hamcrest.generator;
 
 import java.util.Iterator;
+import java.util.List;
 
-import com.thoughtworks.qdox.model.Annotation;
+import com.thoughtworks.qdox.model.JavaAnnotation;
 import com.thoughtworks.qdox.model.JavaClass;
 import com.thoughtworks.qdox.model.JavaMethod;
-import com.thoughtworks.qdox.model.Type;
-import com.thoughtworks.qdox.model.TypeVariable;
+import com.thoughtworks.qdox.model.JavaParameterizedType;
+import com.thoughtworks.qdox.model.JavaType;
+import com.thoughtworks.qdox.model.JavaTypeVariable;
 
 /**
  * Reads a list of Hamcrest factory methods from a class, using QDox source reflection.
@@ -37,15 +39,15 @@ public class QDoxFactoryReaderBase implements Iterable<FactoryMethod> {
         return new Iterator<FactoryMethod>() {
 
             private int currentMethod = -1;
-            private JavaMethod[] allMethods = classSource.getMethods();
+            private List<JavaMethod> allMethods = classSource.getMethods();
 
             @Override
             public boolean hasNext() {
                 while (true) {
                     currentMethod++;
-                    if (currentMethod >= allMethods.length) {
+                    if (currentMethod >= allMethods.size()) {
                         return false;
-                    } else if (isFactoryMethod(allMethods[currentMethod])) {
+                    } else if (isFactoryMethod(allMethods.get(currentMethod))) {
                         return true;
                     } // else carry on looping and try the next one.
                 }
@@ -56,7 +58,7 @@ public class QDoxFactoryReaderBase implements Iterable<FactoryMethod> {
                 if (outsideArrayBounds()) {
                   throw new IllegalStateException("next() called without hasNext() check.");
                 }
-                return buildFactoryMethod(classSource, allMethods[currentMethod]);
+                return buildFactoryMethod(classSource, allMethods.get(currentMethod));
             }
 
             @Override
@@ -65,7 +67,7 @@ public class QDoxFactoryReaderBase implements Iterable<FactoryMethod> {
             }
 
             private boolean outsideArrayBounds() {
-              return currentMethod < 0 || allMethods.length <= currentMethod;
+              return currentMethod < 0 || allMethods.size() <= currentMethod;
             }
         };
     }
@@ -88,8 +90,8 @@ public class QDoxFactoryReaderBase implements Iterable<FactoryMethod> {
     }
 
     private boolean hasFactoryAnnotation(JavaMethod method) {
-        Annotation[] annotations = method.getAnnotations();
-        for (Annotation annotation : annotations) {
+        List<JavaAnnotation> annotations = method.getAnnotations();
+        for (JavaAnnotation annotation : annotations) {
             if ("org.hamcrest.Factory".equals(annotation.getType().getFullyQualifiedName())) {
                 return true;
             }
@@ -103,43 +105,46 @@ public class QDoxFactoryReaderBase implements Iterable<FactoryMethod> {
                 method.getName(), 
                 method.getReturnType().getFullyQualifiedName());
 
-        for (TypeVariable typeVariable : method.getTypeParameters()) {
+        for (JavaTypeVariable<?> typeVariable : method.getTypeParameters()) {
             boolean hasBound = false;
             StringBuilder s = new StringBuilder(typeVariable.getName());
-            final Type[] actualTypeArguments = typeVariable.getActualTypeArguments();
+            final List<JavaType> actualTypeArguments = typeVariable.getBounds();
             if (actualTypeArguments != null) {
-                for (Type bound : actualTypeArguments) {
-                    if (!"java.lang.Object".equals(bound.getGenericValue())) {
+                for (JavaType bound : actualTypeArguments) {
+                    if (!"java.lang.Object".equals(bound.getGenericFullyQualifiedName())) {
                         if (hasBound) {
                             s.append(" & ");
                         } else {
                             s.append(" extends ");
                             hasBound = true;
                         }
-                        s.append(bound.getGenericValue());
+                        s.append(bound.getGenericFullyQualifiedName());
                     }
                 }
             }
             result.addGenericTypeParameter(s.toString());
         }
         
-        Type returnType = method.getGenericReturnType();
-        if (returnType.getActualTypeArguments() != null) {
-            Type generifiedType = returnType.getActualTypeArguments()[0];
-            result.setGenerifiedType(generifiedType.toGenericString());
+        JavaType returnType = method.getReturnType(true);
+        if (returnType instanceof JavaParameterizedType) {
+            List<JavaType> typeArgs = ((JavaParameterizedType)returnType).getActualTypeArguments();
+            if (!typeArgs.isEmpty()) {
+                JavaType generifiedType = typeArgs.get(0);
+                result.setGenerifiedType(generifiedType.getGenericFullyQualifiedName());
+            }
         }
 
         int paramNumber = 0;
-        for (Type paramType : method.getParameterTypes(true)) {
-            String type = paramType.getGenericValue();
+        for (JavaType paramType : method.getParameterTypes(true)) {
+            String type = paramType.getGenericFullyQualifiedName();
             // Special case for var args methods.... String[] -> String...
-            if (method.isVarArgs() && paramNumber == method.getParameterTypes().length - 1) {
+            if (method.isVarArgs() && paramNumber == method.getParameterTypes().size() - 1) {
                 type = type.concat("...");
             }
             result.addParameter(type, "param" + (++paramNumber));
         }
 
-        for (Type exception : method.getExceptions()) {
+        for (JavaType exception : method.getExceptions()) {
             result.addException(exception.getFullyQualifiedName());
         }
 

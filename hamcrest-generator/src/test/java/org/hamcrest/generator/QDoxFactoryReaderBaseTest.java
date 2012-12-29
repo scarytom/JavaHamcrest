@@ -86,7 +86,7 @@ public final class QDoxFactoryReaderBaseTest extends TestCase {
 
     public void testReadsGenericsInGenericType() {
         FactoryMethod method = readMethod("org.GenerifiedMatchers", generifiedMatchersSrc, "crazyType");
-        assertEquals("java.util.Map<? extends java.util.Set<java.lang.Long>, org.hamcrest.Factory>",
+        assertEquals("java.util.Map<? extends java.util.Set<java.lang.Long>,org.hamcrest.Factory>",
                      method.getGenerifiedType());
     }
 
@@ -169,7 +169,7 @@ public final class QDoxFactoryReaderBaseTest extends TestCase {
         assertEquals("T", method.getGenericTypeParameters().get(0));
         assertEquals("V extends java.util.List<java.lang.String> & java.lang.Comparable<java.lang.String>",
                 method.getGenericTypeParameters().get(1));
-        assertEquals("java.util.Map<T, V[]>", method.getGenerifiedType());
+        assertEquals("java.util.Map<T,V[]>", method.getGenerifiedType());
         assertEquals("java.util.Set<T>", method.getParameters().get(0).getType());
         assertEquals("V", method.getParameters().get(1).getType());
     }
