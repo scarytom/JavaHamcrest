@@ -1,7 +1,9 @@
 package org.hamcrest.generator.config;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,10 +20,11 @@ import org.xml.sax.InputSource;
 public final class XmlConfiguratorTest {
 
     private final MockSugarConfiguration sugarConfiguration = new MockSugarConfiguration();
-    private final XmlConfigurator config = new XmlConfigurator(sugarConfiguration, getClass().getClassLoader());
+    private final XmlConfigurator config = new XmlConfigurator(sugarConfiguration);
 
     @Test public void
     addsMatcherFactoryMethodsToConfiguration() throws Exception {
+        config.addSourceDir(new File("."));
         config.load(createXml("" +
                 "<matchers>" +
                 "  <factory class='org.hamcrest.generator.config.XmlConfiguratorTest$SomeMatcher'/>" +
@@ -29,6 +32,7 @@ public final class XmlConfiguratorTest {
                 "</matchers>"));
 
         final List<FactoryMethod> result = sugarConfiguration.factoryMethods();
+        assertEquals(result.size(), 3);
         assertTrue(result.contains(new FactoryMethod(SomeMatcher.class.getName().replace('$', '.'), "matcher1", "org.hamcrest.Matcher")));
         assertTrue(result.contains(new FactoryMethod(SomeMatcher.class.getName().replace('$', '.'), "matcher2", "org.hamcrest.Matcher")));
         assertTrue(result.contains(new FactoryMethod(AnotherMatcher.class.getName().replace('$', '.'), "matcher3", "org.hamcrest.MyMatcher")));

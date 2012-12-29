@@ -101,9 +101,9 @@ public class QDoxFactoryReaderBase implements Iterable<FactoryMethod> {
     
     private static FactoryMethod buildFactoryMethod(JavaClass clazz, JavaMethod method) {
         FactoryMethod result = new FactoryMethod(
-                clazz.getFullyQualifiedName(),
-                method.getName(), 
-                method.getReturnType().getFullyQualifiedName());
+                clazz.getFullyQualifiedName().replace('$', '.'),
+                method.getName(),
+                method.getReturnType().getFullyQualifiedName().replace('$', '.'));
 
         for (JavaTypeVariable<?> typeVariable : method.getTypeParameters()) {
             boolean hasBound = false;

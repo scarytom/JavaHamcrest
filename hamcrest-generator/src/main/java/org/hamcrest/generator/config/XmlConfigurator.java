@@ -2,8 +2,8 @@ package org.hamcrest.generator.config;
 
 import org.hamcrest.generator.HamcrestFactoryWriter;
 import org.hamcrest.generator.QDoxFactoryReader;
+import org.hamcrest.generator.QDoxFactoryReaderBase;
 import org.hamcrest.generator.QuickReferenceWriter;
-import org.hamcrest.generator.ReflectiveFactoryReader;
 import org.hamcrest.generator.SugarConfiguration;
 import org.hamcrest.generator.SugarGenerator;
 import org.hamcrest.generator.QDox;
@@ -22,13 +22,11 @@ import java.io.IOException;
 public class XmlConfigurator {
 
     private final SugarConfiguration sugarConfiguration;
-    private final ClassLoader classLoader;
     private final SAXParserFactory saxParserFactory;
     private final QDox qdox;
 
-    public XmlConfigurator(SugarConfiguration sugarConfiguration, ClassLoader classLoader) {
+    public XmlConfigurator(SugarConfiguration sugarConfiguration) {
         this.sugarConfiguration = sugarConfiguration;
-        this.classLoader = classLoader;
         saxParserFactory = SAXParserFactory.newInstance();
         saxParserFactory.setNamespaceAware(true);
         qdox = new QDox();
@@ -57,9 +55,8 @@ public class XmlConfigurator {
     }
 
     private void addClass(String className) throws ClassNotFoundException {
-        Class<?> cls = classLoader.loadClass(className);
         sugarConfiguration.addFactoryMethods(
-                new QDoxFactoryReader(new ReflectiveFactoryReader(cls), qdox, className));
+                new QDoxFactoryReader(new QDoxFactoryReaderBase(qdox, className), qdox, className));
     }
 
 
@@ -108,8 +105,7 @@ public class XmlConfigurator {
                     packageName, shortClassName, new FileWriter(outputFile)));
             sugarGenerator.addWriter(new QuickReferenceWriter(System.out));
 
-            XmlConfigurator xmlConfigurator
-                    = new XmlConfigurator(sugarGenerator, XmlConfigurator.class.getClassLoader());
+            XmlConfigurator xmlConfigurator = new XmlConfigurator(sugarGenerator);
 
             if (srcDirs.trim().length() > 0) {
                 for (String srcDir : srcDirs.split(",")) {
