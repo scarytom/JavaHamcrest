@@ -40,8 +40,8 @@
     <target name="core" depends="generator" description="Build core Hamcrest library">
         <path id="cp-hamcrest-core-main" path="build/hamcrest-api-${version}.jar"/>
         <path id="cp-hamcrest-core-test" path=""/>
-        <compile-module modulename="hamcrest-core"/>
         <generate-module-factory modulename="hamcrest-core" configurationfile="core-matchers.xml" targetclass="org.hamcrest.CoreMatchers" sources="hamcrest-core/src/main/java"/>
+        <compile-module modulename="hamcrest-core"/>
         <jar-module modulename="hamcrest-core"/>
         <test-module modulename="hamcrest-core"/>
     </target>
@@ -49,8 +49,8 @@
     <target name="library" depends="core" description="Build library of matchers">
         <path id="cp-hamcrest-library-main" path="build/hamcrest-api-${version}.jar;build/hamcrest-core-${version}.jar"/>
         <path id="cp-hamcrest-library-test" path="build/hamcrest-core-${version}-tests.jar"/>
-        <compile-module modulename="hamcrest-library"/>
         <generate-module-factory modulename="hamcrest-library" configurationfile="matchers.xml" targetclass="org.hamcrest.Matchers" sources="hamcrest-core/src/main/java,hamcrest-library/src/main/java"/>
+        <compile-module modulename="hamcrest-library"/>
         <jar-module modulename="hamcrest-library"/>
         <test-module modulename="hamcrest-library"/>
     </target>
@@ -213,8 +213,6 @@
             <mkdir dir="build/temp/@{modulename}/generated-code"/>
             <java classname="org.hamcrest.generator.config.XmlConfigurator" fork="yes" failonerror="yes">
                 <classpath path="build/hamcrest-generator-${version}.jar"/>
-                <classpath refid="cp-@{modulename}-main"/>
-                <classpath path="build/temp/@{modulename}-${version}.jar.contents"/>
                 <arg value="@{configurationfile}"/>
                 <arg value="@{sources}"/>
                 <arg value="@{targetclass}"/>
@@ -224,7 +222,6 @@
             <copy todir="build/temp/@{modulename}-${version}-sources.jar.contents">
                 <fileset dir="build/temp/@{modulename}/generated-code"/>
             </copy>
-            <compile-module modulename="@{modulename}"/>
         </sequential>
     </macrodef>
 
